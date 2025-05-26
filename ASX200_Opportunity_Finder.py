@@ -21,7 +21,7 @@ def get_asx200_tickers():
                 tickers.append(f"{ticker}.AX")
     return tickers
 
-# Step 2: Get P/E and P/B ratios
+# Step 2: Get P/E and P/B ratios, skip tickers with missing/invalid data
 def get_ratios(tickers):
     pe_ratios = {}
     pb_ratios = {}
@@ -34,13 +34,17 @@ def get_ratios(tickers):
             pe = info.get('trailingPE')
             pb = info.get('priceToBook')
 
-            if pe is not None and pe > 0:
-                pe_ratios[ticker] = pe
-            if pb is not None and pb > 0:
-                pb_ratios[ticker] = pb
+            # Skip if either ratio is missing or non-positive
+            if pe is None or pe <= 0 or pb is None or pb <= 0:
+                print(f"Skipping {ticker} due to missing/invalid P/E or P/B.")
+                continue
+
+            pe_ratios[ticker] = pe
+            pb_ratios[ticker] = pb
 
         except Exception as e:
             print(f"Error retrieving data for {ticker}: {e}")
+            continue
 
     return pe_ratios, pb_ratios
 
@@ -57,6 +61,7 @@ def get_latest_moving_averages(ticker, days=180):
     try:
         data = yf.download(ticker, period=f'{days}d')
         if data.empty:
+            print(f"No price data for {ticker}")
             return None, None
 
         data['MA20'] = data['Close'].rolling(window=20).mean()
@@ -76,6 +81,10 @@ def main():
     pe_ratios, pb_ratios = get_ratios(tickers)
     avg_pe = calculate_average(pe_ratios)
     avg_pb = calculate_average(pb_ratios)
+
+    if avg_pe is None or avg_pb is None:
+        print("⚠️ Unable to calculate averages — no valid P/E or P/B data found.")
+        return
 
     below_avg_pe = filter_below_average(pe_ratios, avg_pe)
     below_avg_pb = filter_below_average(pb_ratios, avg_pb)
