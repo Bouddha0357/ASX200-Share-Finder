@@ -1,5 +1,5 @@
+yfinance
 pandas
 numpy
-yfinance
-statsmodels
-matplotlib
+requests
+beautifulsoup4
