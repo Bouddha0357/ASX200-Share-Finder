@@ -1,31 +1,31 @@
 import yfinance as yf
-import pandas as pd
-import time
+import tkinter as tk
 
-TICKERS = [
-    'CBA.AX', 'BHP.AX', 'WBC.AX', 'CSL.AX', 'NAB.AX',
-    'WES.AX', 'ANZ.AX', 'MQG.AX', 'WOW.AX', 'TLS.AX'
-]
+def get_pe_ratio():
+    try:
+        ticker = yf.Ticker("TLS.AX")
+        pe = ticker.info.get('trailingPE')
+        if pe is not None:
+            result_label.config(text=f"P/E Ratio for Telstra (TLS.AX): {pe:.2f}")
+        else:
+            result_label.config(text="P/E ratio not available.")
+    except Exception as e:
+        result_label.config(text=f"Error fetching data: {e}")
 
-def fetch_pe_ratios(tickers):
-    data = []
-    for ticker in tickers:
-        try:
-            stock = yf.Ticker(ticker)
-            info = stock.info
-            pe = info.get('trailingPE')
-            if pe is not None and pe > 0:
-                data.append({'Ticker': ticker, 'P/E Ratio': pe})
-            time.sleep(0.2)  # brief pause to avoid rate limits
-        except:
-            continue
-    return data
+# GUI setup
+root = tk.Tk()
+root.title("Telstra P/E Ratio")
 
-def main():
-    results = fetch_pe_ratios(TICKERS)
-    if results:
-        df = pd.DataFrame(results)
-        df.to_csv("asx200_pe_ratios.csv", index=False)
+root.geometry("300x150")
+root.resizable(False, False)
 
-if __name__ == "__main__":
-    main()
+title_label = tk.Label(root, text="Click to get Telstra's P/E Ratio", font=("Arial", 12))
+title_label.pack(pady=10)
+
+get_button = tk.Button(root, text="Fetch P/E Ratio", command=get_pe_ratio)
+get_button.pack(pady=5)
+
+result_label = tk.Label(root, text="", font=("Arial", 11))
+result_label.pack(pady=10)
+
+root.mainloop()
