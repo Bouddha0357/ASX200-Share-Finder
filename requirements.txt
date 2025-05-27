@@ -1,1 +1,3 @@
 yfinance
+BeautifulSoup
+csv
